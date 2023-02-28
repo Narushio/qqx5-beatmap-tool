@@ -164,10 +164,10 @@ const convertTimeline = (key) => {
 		if (key === "4") {
 			switch (osuTrack) {
 				case hitObject.FOURKEY.TRACK_ONE:
-					xmlTrack = "Left1"
+					xmlTrack = "Left2"
 					break
 				case hitObject.FOURKEY.TRACK_TWO:
-					xmlTrack = "Left2"
+					xmlTrack = "Left1"
 					break
 				case hitObject.FOURKEY.TRACK_THREE:
 					xmlTrack = "Right1"
@@ -181,10 +181,10 @@ const convertTimeline = (key) => {
 		if (key === "5") {
 			switch (osuTrack) {
 				case hitObject.FIVEKEY.TRACK_ONE:
-					xmlTrack = "Left1"
+					xmlTrack = "Left2"
 					break
 				case hitObject.FIVEKEY.TRACK_TWO:
-					xmlTrack = "Left2"
+					xmlTrack = "Left1
 					break
 				case hitObject.FIVEKEY.TRACK_THREE:
 					xmlTrack = "Middle"
