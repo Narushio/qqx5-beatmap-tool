@@ -184,7 +184,7 @@ const convertTimeline = (key) => {
 					xmlTrack = "Left2"
 					break
 				case hitObject.FIVEKEY.TRACK_TWO:
-					xmlTrack = "Left1
+					xmlTrack = "Left1"
 					break
 				case hitObject.FIVEKEY.TRACK_THREE:
 					xmlTrack = "Middle"
