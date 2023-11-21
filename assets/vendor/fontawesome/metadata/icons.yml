@@ -2467,7 +2467,7 @@ bus:
   label: Bus
   search:
     terms:
-      - public transportation
+      - static transportation
       - transportation
       - travel
       - vehicle
@@ -2482,7 +2482,7 @@ bus-alt:
   search:
     terms:
       - mta
-      - public transportation
+      - static transportation
       - transportation
       - travel
       - vehicle
@@ -16485,7 +16485,7 @@ shuttle-van:
     terms:
       - airport
       - machine
-      - public-transportation
+      - static-transportation
       - transportation
       - travel
       - vehicle
