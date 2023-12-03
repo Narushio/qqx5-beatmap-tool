@@ -63,16 +63,17 @@ const initEvents = () => {
 		}
 	})
 
-	$(".button.is-info").click(() => {
+	$("#submit").click(() => {
 		if ($(".file-input").val() == "") {
-			alert("请先选择文件呀！！！")
+			alert("Please select a file!")
 			return false
 		}
-		if ($(".input.is-info").val() == "") {
-			alert("请输入BPM呀！！！")
+		if ($(".input").val() == "") {
+			alert("Please enter BPM!")
 			return false
 		}
-		$(".button.is-info").addClass("is-loading")
+
+		$("#submit").addClass("is-loading")
 		$(".message-header").html(songArtist + " - " + songTitle)
 		$("#output-box").removeClass("is-hidden")
 		convertTimeline(key)
@@ -103,7 +104,7 @@ const noteTempStr = (bar, pos, track, type, endBar, endPos) => {
 }
 
 const convertTimeline = (key) => {
-	const bpm = $(".input.is-info").val()
+	const bpm = $(".input").val()
 	const barTime = 60000 / bpm * 4
 	const posTime = barTime / 32
 	let xmlContent = ""
@@ -134,8 +135,7 @@ const convertTimeline = (key) => {
 		pos = Math.round(Number(osuTime) % barTime / posTime) * 2
 		
 		if ((pos % 2) !== 0) {
-			if ((Number(osuTime) % barTime / posTime) > (Math.round(Number(osuTime) % barTime /
-					posTime))) {
+			if ((Number(osuTime) % barTime / posTime) > (Math.round(Number(osuTime) % barTime / posTime))) {
 				pos += 1
 			} else {
 				pos -= 1
@@ -201,7 +201,7 @@ const convertTimeline = (key) => {
 		xmlContent += noteTempStr(bar, pos, xmlTrack, xmlNoteType, endBar, endPos) + "<br/>"
 	})
 	$("#resultDiv").html(xmlContent)
-	$(".button.is-info").removeClass("is-loading")
+	$("#submit").removeClass("is-loading")
 }
 
 initEvents()

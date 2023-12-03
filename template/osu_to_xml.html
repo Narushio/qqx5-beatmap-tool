@@ -1,0 +1,62 @@
+{{ define "osu_to_xml" }}
+    <div class="column">
+        <div class="columns">
+            <div class="column">
+                <div class="notification">
+                    <p class="has-text-danger">注意：</p>
+                    <p>输入的BPM将生成为炫舞编辑器的BPM对应的谱面文件</p>
+                    <p>支持4K，5K仅支持标准的5KOSU文件，不支持从其他K直接转成5K的note排版
+                        <span class="has-text-danger">（请在OSU中全选NOTE然后重新原地拖动一遍让键位索引排布为正确的5K排版）</span>
+                    </p>
+                    <p>炫舞编辑器与OSU的ET相差误差大概相差<span class="has-text-danger">80ms</span>，在炫舞编辑器中推荐加上（而不是减去）
+                    </p>
+                    <p>
+                        在转不是自己编写的谱子时，务必加上原作者的名字，目的是尊重原作者，且避免不必要的麻烦（被查房）！！！！！</p>
+                </div>
+            </div>
+        </div>
+        <div class="columns">
+            <div class="column">
+                <div class="file has-name">
+                    <label class="file-label">
+                        <input class="file-input" accept=".osu" type="file" name="resume">
+                        <span class="file-cta">
+                                        <span class="file-icon">
+                                            <i class="fas fa-upload"></i>
+                                        </span>
+                                        <span class="file-label">
+                                            上传OSU文件
+                                        </span>
+                                    </span>
+                        <span class="file-name"></span>
+                    </label>
+                </div>
+            </div>
+            <div class="column">
+                <input class="input" type="text" placeholder="请输入需要转换的BPM">
+            </div>
+            <div class="column">
+                <button class="button" id="submit">开始转换</button>
+            </div>
+        </div>
+        <div class="columns is-full is-hidden" id="output-box">
+            <div class="column">
+                <article class="message">
+                    <div class="message-header"></div>
+                    <div class="message-body">
+                        results:<br/>
+                        <div>
+                            &nbsp;&nbsp;&nbsp;&nbsp;&lt;Normal&gt;
+                            <br>
+                            <div id="resultDiv">
+
+                            </div>
+                            &nbsp;&nbsp;&nbsp;&nbsp;&lt;/Normal&gt;
+                            <br>
+                        </div>
+                    </div>
+                </article>
+            </div>
+        </div>
+    </div>
+{{ end }}
