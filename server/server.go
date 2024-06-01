@@ -1,4 +1,4 @@
-package server
+package main
 
 import (
 	"context"
@@ -13,13 +13,13 @@ import (
 	"github.com/Narushio/qqx5-beatmap-tool/config"
 )
 
-func Init() {
+func main() {
+	config.Init("config")
 	ctx, stop := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
 	defer stop()
 
-	cfg := config.GetConfig()
 	r := NewRouter()
-	port := cfg.GetString("server.port")
+	port := config.Viper.GetString("server.port")
 	srv := &http.Server{
 		Addr:    fmt.Sprintf(":%s", port),
 		Handler: r,
