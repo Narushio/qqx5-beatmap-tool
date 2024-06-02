@@ -1,23 +1,23 @@
 package config
 
 import (
-	"log"
+	"fmt"
 	"path/filepath"
 
 	"github.com/spf13/viper"
 )
 
-var config *viper.Viper
+var Viper *viper.Viper
 
 func Init(filename string) {
 	var err error
-	config = viper.New()
-	config.SetConfigType("yaml")
-	config.SetConfigName(filename)
-	config.AddConfigPath("./config")
-	err = config.ReadInConfig()
+	Viper = viper.New()
+	Viper.SetConfigType("yaml")
+	Viper.SetConfigName(filename)
+	Viper.AddConfigPath(".")
+	err = Viper.ReadInConfig()
 	if err != nil {
-		log.Fatal("error on parsing configuration file")
+		panic(fmt.Errorf("read config file: %w", err))
 	}
 }
 
@@ -26,8 +26,4 @@ func relativePath(basedir string, path *string) {
 	if len(p) > 0 && p[0] != '/' {
 		*path = filepath.Join(basedir, p)
 	}
-}
-
-func GetConfig() *viper.Viper {
-	return config
 }

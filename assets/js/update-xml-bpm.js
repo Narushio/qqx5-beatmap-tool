@@ -27,19 +27,20 @@ const initEvents = () => {
 
         $("#submit").addClass("is-loading")
         $.ajax({
-            url: "/api/v1/update_xml_bpm",
+            url: "/api/v1/convert/update_xml_bpm",
             data: formData,
             type: "POST",
             contentType: false,
             processData: false,
             success: function (data) {
-                $(".message-header").text("替换<Normal></Normal>标签")
+                $("#output-box-title").text("替换<Normal></Normal>标签")
                 $("#output-box").removeClass("is-hidden")
                 $("#submit").removeClass("is-loading")
-                $("#notes").html(data)
+                $("#notes").html(data.notes)
             },
             error: function (data) {
-                alert(data)
+                alert(data.responseText)
+                $("#submit").removeClass("is-loading")
             },
         })
     })

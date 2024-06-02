@@ -1,96 +1,69 @@
-function OSUFile(file = null, key = null, songTitle = null, songArtist = null, trackNotes = null, fileContent = null) {
-	this.__proto__.file = file
-	this.__proto__.key = key
-	this.__proto__.songTitle = songTitle
-	this.__proto__.songArtist = songArtist
-	this.__proto__.trackNotes = trackNotes
-	this.__proto__.fileContent = fileContent
-}
-
-function OSUNote(osuTrack = null, osuTime = null, osuNoteType = null, osuEndTime = null) {
-	this.__proto__.osuTrack = osuTrack
-	this.__proto__.osuTime = osuTime
-	this.__proto__.osuNoteType = osuNoteType
-	this.__proto__.osuEndTime = osuEndTime
-}
-
-function XMLNote(xmlTrack = null, xmlNoteType = null, bar = null, pos = null, endBar = null, endPos = null) {
-	this.__proto__.xmlTrack = xmlTrack
-	this.__proto__.xmlNoteType = xmlNoteType
-	this.__proto__.bar = bar
-	this.__proto__.pos = pos
-	this.__proto__.endBar = endBar
-	this.__proto__.endPos = endPos
-}
-
-const hitObject = {
-	FOURKEY: {
-		TRACK_ONE: "64",
-		TRACK_TWO: "192",
-		TRACK_THREE: "320",
-		TRACK_FOUR: "448",
-		LONG_NOTE: "128",
-		SHORT_NOTE: ["1", "5"]
-	},
-	FIVEKEY: {
-		TRACK_ONE: "51",
-		TRACK_TWO: "153",
-		TRACK_THREE: "256",
-		TRACK_FOUR: "358",
-		TRACK_FIVE: "460",
-		LONG_NOTE: "128",
-		SHORT_NOTE: ["1", "5"]
-	}
-}
-
-let {
-	file,
-	key,
-	songTitle,
-	songArtist,
-	trackNotes,
-	fileContent
-} = new OSUFile().__proto__
-
 const initEvents = () => {
 	$(".file-input").change((event) => {
-		file = event.currentTarget.files[0]
+		let file = event.currentTarget.files[0]
+		let fileContent, songTitle, songArtist
+
 		if (file !== undefined) {
 			$(".file-name").html(file.name)
-			loadFile()
+			const reader = new FileReader()
+			reader.readAsText(file, "UTF-8")
+			reader.onload = (event) => {
+				fileContent = event.target.result.replace(/\r\n/g, "newline ")
+				songTitle = fileContent.split("Title:")[1].split(/newline/g)[0]
+				songArtist = fileContent.split("Artist:")[1].split(/newline/g)[0]
+			}
 		} else {
 			$(".file-name").html("")
 		}
 	})
 
+
 	$("#submit").click(() => {
-		if ($(".file-input").val() == "") {
+		const fileInput = $(".file-input")
+		if (fileInput.val() === "") {
 			alert("Please select a file!")
-			return false
+			return
 		}
-		if ($(".input").val() == "") {
-			alert("Please enter BPM!")
-			return false
-		}
+		const formData = new FormData();
+		formData.append("file", fileInput[0].files[0]);
+
 
 		$("#submit").addClass("is-loading")
-		$(".message-header").html(songArtist + " - " + songTitle)
-		$("#output-box").removeClass("is-hidden")
-		convertTimeline(key)
+		$.ajax({
+			url: "/api/v1/convert/osu_to_xml",
+			data: formData,
+			type: "POST",
+			contentType: false,
+			processData: false,
+			success: function (data) {
+				$("#output-box-title").text(songTitle + " - " + songArtist)
+				$("#output-box").removeClass("is-hidden")
+				$("#submit").removeClass("is-loading")
+				$("#notes").html(data)
+			},
+			error: function (data) {
+				alert(data.responseText)
+				$("#submit").removeClass("is-loading")
+			},
+		})
 	})
-}
 
-const loadFile = () => {
-	const reader = new FileReader()
-	reader.readAsText(file, "UTF-8")
-	reader.onload = (event) => {
-		fileContent = event.target.result.replace(/\r\n/g, "newline ")
-		key = fileContent.split("CircleSize:")[1].split(/newline/g)[0]
-		songTitle = fileContent.split("Title:")[1].split(/newline/g)[0]
-		songArtist = fileContent.split("Artist:")[1].split(/newline/g)[0]
-		trackNotes = fileContent.split("[HitObjects]newline ")[1].split("newline ")
-		trackNotes.pop()
-	}
+
+	// $("#submit").click(() => {
+	// 	if ($(".file-input").val() == "") {
+	// 		alert("Please select a file!")
+	// 		return false
+	// 	}
+	// 	if ($(".input").val() == "") {
+	// 		alert("Please enter BPM!")
+	// 		return false
+	// 	}
+	//
+	// 	$("#submit").addClass("is-loading")
+	// 	$(".message-header").html(songArtist + " - " + songTitle)
+	// 	$("#output-box").removeClass("is-hidden")
+	// 	convertTimeline(key)
+	// })
 }
 
 const noteTempStr = (bar, pos, track, type, endBar, endPos) => {

@@ -1,7 +1,7 @@
-package server
+package main
 
 import (
-	"github.com/Narushio/qqx5-beatmap-tool/controller"
+	"github.com/Narushio/qqx5-beatmap-tool/handler"
 	"github.com/gin-gonic/gin"
 )
 
@@ -10,21 +10,25 @@ func NewRouter() *gin.Engine {
 	e.Use(gin.Logger())
 	e.Use(gin.Recovery())
 	e.Static("/assets", "./assets")
-	e.LoadHTMLGlob("template/*")
+	e.LoadHTMLGlob("view/*")
 
-	health := new(controller.HealthController)
-	e.GET("/health", health.Status)
+	health := handler.NewHealth()
+	e.GET("/health", health.Index)
 
-	home := new(controller.HomeController)
+	home := handler.NewHome()
 	{
-		e.GET("/", home.IndexTmpl)
+		e.GET("/", home.Index)
 		e.GET("/update_xml_bpm", home.UpdateXmlBPMTmpl)
+		e.GET("/mcz_to_xml", home.MCZToXMLTmpl)
 	}
 
 	v1 := e.Group("api/v1")
+
+	convert := handler.NewConvert()
+	convertGroup := v1.Group("/convert")
 	{
-		v1.POST("/convert_to_xml", home.ConvertToXml)
-		v1.POST("/update_xml_bpm", home.UpdateXmlBPM)
+		convertGroup.POST("/osu_to_xml", convert.OSUToXML)
+		convertGroup.POST("/update_xml_bpm", convert.UpdateXMLBPM)
 	}
 	return e
 }
