@@ -1,7 +1,12 @@
 package main
 
 import (
+	"html/template"
+	"net/http"
+
+	"github.com/Narushio/qqx5-beatmap-tool/assets"
 	"github.com/Narushio/qqx5-beatmap-tool/handler"
+	"github.com/Narushio/qqx5-beatmap-tool/view"
 	"github.com/gin-gonic/gin"
 )
 
@@ -9,8 +14,13 @@ func NewRouter() *gin.Engine {
 	e := gin.New()
 	e.Use(gin.Logger())
 	e.Use(gin.Recovery())
-	e.Static("/assets", "./assets")
-	e.LoadHTMLGlob("view/*")
+
+	e.StaticFS("/assets", http.FS(assets.FS))
+	e.GET("/favicon.ico", func(c *gin.Context) {
+		c.File("./assets/favicon.ico")
+	})
+
+	e.SetHTMLTemplate(template.Must(template.ParseFS(view.FS, "*.html")))
 
 	health := handler.NewHealth()
 	e.GET("/health", health.Index)
@@ -29,6 +39,7 @@ func NewRouter() *gin.Engine {
 	{
 		convertGroup.POST("/osu_to_xml", convert.OSUToXML)
 		convertGroup.POST("/update_xml_bpm", convert.UpdateXMLBPM)
+		convertGroup.POST("/mcz_to_xml", convert.MCZToXML)
 	}
 	return e
 }

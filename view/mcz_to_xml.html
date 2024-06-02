@@ -20,7 +20,8 @@
                         <div class="column">
                             <div class="notification">
                                 <p class="has-text-danger">注意：</p>
-                                <p>由于编辑器的Bar和Pos设计的一坨屎，理论上增加BPM相对误差较少，反之可能会出现预想不到的bug。</p>
+                                <p>仅支持Malody标准<b>Key</b>模式的转换。</p>
+                                <p>在转不是自己编写的谱子时，务必加上原作者的名字，目的是尊重原作者，且避免不必要的麻烦（被查房）！！！！！</p>
                                 <p class="has-text-danger">请自行复制粘贴后调节最大节拍数以及showtime等段落安排。</p>
                             </div>
                         </div>
@@ -29,12 +30,12 @@
                         <div class="column">
                             <div class="file has-name">
                                 <label class="file-label">
-                                    <input class="file-input" accept=".xml" type="file">
+                                    <input class="file-input" accept=".mcz" type="file">
                                     <span class="file-cta">
                                             <span class="file-icon">
                                                 <i class="fas fa-upload"></i>
                                             </span>
-                                            <span class="file-label">上传XML文件</span>
+                                            <span class="file-label">上传MCZ文件</span>
                                         </span>
                                     <span class="file-name"></span>
                                 </label>
@@ -49,10 +50,18 @@
                     </div>
                     <div class="columns is-full is-hidden" id="output-box">
                         <div class="column">
+                            <div class="box">
+                                <div class="columns">
+                                    <div class="column" id="creator"></div>
+                                    <div class="column" id="offset"></div>
+                                </div>
+                            </div>
                             <article class="message">
-                                <div class="message-header"></div>
+                                <div class="message-header">
+                                    <p id="output-box-title"></p>
+                                    <button class="icon" id="btn-copy" data-clipboard-target="#notes"><i class="fa fa-copy"></i></button>
+                                </div>
                                 <div class="message-body">
-                                    results:<br/>
                                     <div id="notes"></div>
                                 </div>
                             </article>
@@ -64,7 +73,9 @@
     </div>
     </body>
     <script type="text/javascript" src="../assets/vendor/jquery-3.4.1.min.js"></script>
-    <script type="text/javascript" src="../assets/js/update-xml-bpm.js"></script>
+    <script type="text/javascript" src="../assets/js/mcz-to-xml.js"></script>
+    <script type="application/javascript" src="../assets/vendor/clipboard.min.js"></script>
+    <script type="text/javascript" src="../assets/js/copy-notes.js"></script>
     <script type="text/javascript">
         if (!(window.File || window.FileReader || window.FileList || window.Blob)) {
             alert("你使用的浏览器不支持使用此工具");

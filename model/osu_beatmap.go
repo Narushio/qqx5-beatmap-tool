@@ -11,14 +11,14 @@ import (
 
 // official website https://osu.ppy.sh/wiki/zh/Client/File_formats/osu_(file_format)
 
-type OSUBeatMap struct {
-	Metadata     OSUBeatMapMetaData
-	TimingPoints []OSUBeatMapTimingPoint
-	HitObjects   []OSUBeatMapHitObject
-	Difficulty   OSUBeatMapDifficulty
+type OsuBeatMap struct {
+	Metadata     OsuBeatMapMetaData
+	TimingPoints []OsuBeatMapTimingPoint
+	HitObjects   []OsuBeatMapHitObject
+	Difficulty   OsuBeatMapDifficulty
 }
 
-type OSUBeatMapDifficulty struct {
+type OsuBeatMapDifficulty struct {
 	HPDrainRate       float64
 	CircleSize        float64
 	OverallDifficulty float64
@@ -27,7 +27,7 @@ type OSUBeatMapDifficulty struct {
 	SliderTickRate    float64
 }
 
-type OSUBeatMapMetaData struct {
+type OsuBeatMapMetaData struct {
 	Title         string
 	TitleUnicode  string
 	Artist        string
@@ -40,7 +40,7 @@ type OSUBeatMapMetaData struct {
 	BeatmapSetID  int
 }
 
-type OSUBeatMapTimingPoint struct {
+type OsuBeatMapTimingPoint struct {
 	Time        int
 	BeatLength  float64 // BPM = （1 / BeatLength * 1000 * 60）
 	Meter       int
@@ -51,7 +51,7 @@ type OSUBeatMapTimingPoint struct {
 	Effects     int
 }
 
-type OSUBeatMapHitObject struct {
+type OsuBeatMapHitObject struct {
 	X         int // floor(x * columnCount / 512)
 	Y         int // default 192 for osu!mania
 	Time      int
@@ -60,18 +60,17 @@ type OSUBeatMapHitObject struct {
 	HitSample string // default 0:0:0:0:
 }
 
-func (m *OSUBeatMapHitObject) QQX5BeatMapNoteType() QQX5BeatmapNoteType {
-	switch m.Y {
-	case 192:
-		return QQX5BeatmapShortNote
-	case 0:
-		return QQX5BeatmapLongNote
-	}
-
-	return ""
+func (m *OsuBeatMapHitObject) EndTime() int {
+	parts := strings.Split(m.HitSample, ":")
+	endTime, _ := strconv.Atoi(parts[0])
+	return endTime
 }
 
-func (m *OSUBeatMapHitObject) QQX5BeatmapTargetTrack(columnCount float64) QQX5BeatmapTargetTrackType {
+func (m *OsuBeatMapHitObject) IsHoldNote() bool {
+	return m.Type == 128
+}
+
+func (m *OsuBeatMapHitObject) QQX5BeatmapTargetTrack(columnCount float64) QQX5BeatmapTargetTrackType {
 	targetTrack := math.Floor(float64(m.X) * columnCount / 512)
 
 	if columnCount == 4 {
@@ -103,7 +102,7 @@ func (m *OSUBeatMapHitObject) QQX5BeatmapTargetTrack(columnCount float64) QQX5Be
 	return ""
 }
 
-func (m *OSUBeatMap) Parse(b []byte) error {
+func (m *OsuBeatMap) Parse(b []byte) error {
 	buf := bytes.NewBuffer(b)
 	scanner := bufio.NewScanner(buf)
 
@@ -123,6 +122,8 @@ func (m *OSUBeatMap) Parse(b []byte) error {
 			m.parseMetadata(line)
 		case "[TimingPoints]":
 			m.parseTimingPoints(line)
+		case "[Difficulty]":
+			m.parseDifficulty(line)
 		case "[HitObjects]":
 			m.parseHitObjects(line)
 		}
@@ -135,7 +136,7 @@ func (m *OSUBeatMap) Parse(b []byte) error {
 	return nil
 }
 
-func (m *OSUBeatMap) parseDifficulty(line string) {
+func (m *OsuBeatMap) parseDifficulty(line string) {
 	if line == "" {
 		return
 	}
@@ -164,7 +165,7 @@ func (m *OSUBeatMap) parseDifficulty(line string) {
 	}
 }
 
-func (m *OSUBeatMap) parseMetadata(line string) {
+func (m *OsuBeatMap) parseMetadata(line string) {
 	if line == "" {
 		return
 	}
@@ -201,7 +202,7 @@ func (m *OSUBeatMap) parseMetadata(line string) {
 	}
 }
 
-func (m *OSUBeatMap) parseTimingPoints(line string) {
+func (m *OsuBeatMap) parseTimingPoints(line string) {
 	if line == "" {
 		return
 	}
@@ -220,7 +221,7 @@ func (m *OSUBeatMap) parseTimingPoints(line string) {
 	uninherited := parts[6] == "1"
 	effects, _ := strconv.Atoi(parts[7])
 
-	timingPoint := OSUBeatMapTimingPoint{
+	timingPoint := OsuBeatMapTimingPoint{
 		Time:        time,
 		BeatLength:  beatLength,
 		Meter:       meter,
@@ -234,7 +235,7 @@ func (m *OSUBeatMap) parseTimingPoints(line string) {
 	m.TimingPoints = append(m.TimingPoints, timingPoint)
 }
 
-func (m *OSUBeatMap) parseHitObjects(line string) {
+func (m *OsuBeatMap) parseHitObjects(line string) {
 	if line == "" {
 		return
 	}
@@ -251,7 +252,7 @@ func (m *OSUBeatMap) parseHitObjects(line string) {
 	hitSound, _ := strconv.Atoi(parts[4])
 	hitSample := parts[5]
 
-	hitObject := OSUBeatMapHitObject{
+	hitObject := OsuBeatMapHitObject{
 		X:         x,
 		Y:         y,
 		Time:      time,

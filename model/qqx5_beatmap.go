@@ -55,7 +55,7 @@ func calculateBarAndPos(ms, barMS, posMS float64) (int, int) {
 	bar := math.Floor(ms / barMS)
 	pos := math.Round(math.Mod(ms, barMS) / posMS)
 	if math.Mod(pos, 2) != 0 {
-		if math.Mod(ms/barMS, posMS) > math.Round(math.Mod(ms/barMS, posMS)) {
+		if math.Mod(ms, barMS)/posMS > math.Round(math.Mod(ms, barMS)/posMS) {
 			pos += 1
 		} else {
 			pos -= 1
@@ -157,68 +157,104 @@ type QQX5BeatmapNormal struct {
 	CombineNotes []*QQX5BeatmapCombineNote `xml:"CombineNote"`
 }
 
-func (n *QQX5BeatmapNormal) ParseFromOsuBeatMap(osuBeatMap *OSUBeatMap, bpm float64) {
-	var (
-		barTime = 60000 / bpm * 4
-		posTime = barTime / 32
-	)
+func (m *QQX5BeatmapNormal) ParseFromMalodyBeatmap(beatmap *MalodyBeatmap, bpm float64) {
+	barTime, posTime := calculateBarAndPosMS(bpm)
 
-	for _, ho := range osuBeatMap.HitObjects {
+	for _, n := range beatmap.Note {
+		if n.Type != nil && *n.Type != 0 {
+			continue
+		}
+
+		bpmOffset := beatmap.BpmOffset()
+		bar, pos := calculateBarAndPos(beatmap.CalcNoteHitTime(n.Beat, bpmOffset), barTime, posTime)
+		targetTrack := n.QQX5BeatmapTargetTrack(beatmap.Meta.ModeExt.Column)
+		note := &QQX5BeatmapNote{
+			Bar:         bar,
+			Pos:         pos,
+			FromTrack:   &targetTrack,
+			TargetTrack: targetTrack,
+			NoteType:    QQX5BeatmapShortNote,
+		}
+
+		if n.IsHoldNote() {
+			endBar, endPos := calculateBarAndPos(beatmap.CalcNoteHitTime(*n.EndBeat, bpmOffset), barTime, posTime)
+			note.EndBar = &endBar
+			note.EndPos = &endPos
+			note.NoteType = QQX5BeatmapLongNote
+		}
+
+		m.Notes = append(m.Notes, note)
+	}
+}
+
+func (m *QQX5BeatmapNormal) ParseFromOsuBeatMap(beatMap *OsuBeatMap, bpm float64) {
+	barTime, posTime := calculateBarAndPosMS(bpm)
+
+	for _, ho := range beatMap.HitObjects {
 		bar, pos := calculateBarAndPos(float64(ho.Time), barTime, posTime)
+		targetTrack := ho.QQX5BeatmapTargetTrack(beatMap.Difficulty.CircleSize)
 
 		note := &QQX5BeatmapNote{
 			Bar:         bar,
 			Pos:         pos,
-			TargetTrack: ho.QQX5BeatmapTargetTrack(osuBeatMap.Difficulty.CircleSize),
+			FromTrack:   &targetTrack,
+			TargetTrack: targetTrack,
 			NoteType:    QQX5BeatmapShortNote,
 		}
 
-		n.Notes = append(n.Notes, note)
+		if ho.IsHoldNote() {
+			endBar, endPos := calculateBarAndPos(float64(ho.EndTime()), barTime, posTime)
+			note.EndBar = &endBar
+			note.EndPos = &endPos
+			note.NoteType = QQX5BeatmapLongNote
+		}
+
+		m.Notes = append(m.Notes, note)
 	}
 }
 
-func (n *QQX5BeatmapNormal) ToHTML() string {
+func (m *QQX5BeatmapNormal) ToHTML() string {
 	var noteStr string
-	for _, n := range n.Notes {
+	for _, n := range m.Notes {
 		noteStr += n.ToHTML()
 	}
-	for _, cn := range n.CombineNotes {
+	for _, cn := range m.CombineNotes {
 		noteStr += cn.ToHTML()
 	}
 	return fmt.Sprintf("&lt;Normal&gt;<br>" + noteStr + "&lt;/Normal&gt;<br>")
 }
 
 type QQX5BeatmapNote struct {
-	Bar         int                        `xml:"Bar,attr"`
-	Pos         int                        `xml:"Pos,attr"`
-	FromTrack   *string                    `xml:"from_track,attr,omitempty"`
-	TargetTrack QQX5BeatmapTargetTrackType `xml:"target_track,attr"`
-	EndTrack    *string                    `xml:"end_track,attr,omitempty"`
-	NoteType    QQX5BeatmapNoteType        `xml:"note_type,attr"`
-	EndBar      *int                       `xml:"EndBar,attr,omitempty"`
-	EndPos      *int                       `xml:"EndPos,attr,omitempty"`
+	Bar         int                         `xml:"Bar,attr"`
+	Pos         int                         `xml:"Pos,attr"`
+	FromTrack   *QQX5BeatmapTargetTrackType `xml:"from_track,attr,omitempty"`
+	TargetTrack QQX5BeatmapTargetTrackType  `xml:"target_track,attr"`
+	EndTrack    *QQX5BeatmapTargetTrackType `xml:"end_track,attr,omitempty"`
+	NoteType    QQX5BeatmapNoteType         `xml:"note_type,attr"`
+	EndBar      *int                        `xml:"EndBar,attr,omitempty"`
+	EndPos      *int                        `xml:"EndPos,attr,omitempty"`
 }
 
-func (n *QQX5BeatmapNote) ToHTML() string {
+func (m *QQX5BeatmapNote) ToHTML() string {
 	var builder strings.Builder
 
 	builder.WriteString(QQX5BeatmapIndent + "&lt;Note ")
-	builder.WriteString(fmt.Sprintf("Bar=\"%d\" Pos=\"%d\" ", n.Bar, n.Pos))
+	builder.WriteString(fmt.Sprintf("Bar=\"%d\" Pos=\"%d\" ", m.Bar, m.Pos))
 
-	if n.FromTrack != nil {
-		builder.WriteString(fmt.Sprintf("from_track=\"%s\" ", *n.FromTrack))
+	if m.FromTrack != nil {
+		builder.WriteString(fmt.Sprintf("from_track=\"%s\" ", *m.FromTrack))
 	}
 
-	builder.WriteString(fmt.Sprintf("target_track=\"%s\" ", n.TargetTrack))
+	builder.WriteString(fmt.Sprintf("target_track=\"%s\" ", m.TargetTrack))
 
-	if n.FromTrack == nil {
-		builder.WriteString(fmt.Sprintf("end_track=\"%s\" ", *n.EndTrack))
+	if m.EndTrack != nil {
+		builder.WriteString(fmt.Sprintf("end_track=\"%s\" ", *m.EndTrack))
 	}
 
-	builder.WriteString(fmt.Sprintf("note_type=\"%s\" ", n.NoteType))
+	builder.WriteString(fmt.Sprintf("note_type=\"%s\" ", m.NoteType))
 
-	if n.IsLongNote() {
-		builder.WriteString(fmt.Sprintf("EndBar=\"%d\" EndPos=\"%d\" ", *n.EndBar, *n.EndPos))
+	if m.IsLongNote() {
+		builder.WriteString(fmt.Sprintf("EndBar=\"%d\" EndPos=\"%d\" ", *m.EndBar, *m.EndPos))
 	}
 
 	builder.WriteString("/&gt;<br>")
@@ -226,18 +262,18 @@ func (n *QQX5BeatmapNote) ToHTML() string {
 	return builder.String()
 }
 
-func (n *QQX5BeatmapNote) ToMilliseconds(barMS, posMS float64) (float64, float64) {
-	hitMS := float64(n.Bar-1)*barMS + float64(n.Pos)*posMS
+func (m *QQX5BeatmapNote) ToMilliseconds(barMS, posMS float64) (float64, float64) {
+	hitMS := float64(m.Bar-1)*barMS + float64(m.Pos)*posMS
 
-	if n.IsLongNote() {
-		return hitMS, float64(*n.EndBar-1)*barMS + float64(*n.EndPos)*posMS
+	if m.IsLongNote() {
+		return hitMS, float64(*m.EndBar-1)*barMS + float64(*m.EndPos)*posMS
 	}
 
 	return hitMS, 0
 }
 
-func (n *QQX5BeatmapNote) IsLongNote() bool {
-	return n.NoteType == QQX5BeatmapLongNote
+func (m *QQX5BeatmapNote) IsLongNote() bool {
+	return m.NoteType == QQX5BeatmapLongNote
 }
 
 type QQX5BeatmapCombineNote struct {

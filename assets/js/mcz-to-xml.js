@@ -27,13 +27,15 @@ const initEvents = () => {
 
         $("#submit").addClass("is-loading")
         $.ajax({
-            url: "/api/v1/convert/update_xml_bpm",
+            url: "/api/v1/convert/mcz_to_xml",
             data: formData,
             type: "POST",
             contentType: false,
             processData: false,
             success: function (data) {
-                $("#output-box-title").text("替换<Normal></Normal>标签")
+                $("#creator").text("Creator: " + data.creator)
+                $("#offset").text("Offset: " + data.offset)
+                $("#output-box-title").text(data.title + " - " + data.artist)
                 $("#output-box").removeClass("is-hidden")
                 $("#submit").removeClass("is-loading")
                 $("#notes").html(data.notes)
