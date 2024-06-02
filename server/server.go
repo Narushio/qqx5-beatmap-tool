@@ -10,11 +10,16 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/Narushio/qqx5-beatmap-tool/assets"
 	"github.com/Narushio/qqx5-beatmap-tool/config"
+	"github.com/Narushio/qqx5-beatmap-tool/view"
 )
 
 func main() {
-	config.Init("config")
+	config.New("config")
+	assets.New()
+	view.New()
+
 	ctx, stop := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
 	defer stop()
 

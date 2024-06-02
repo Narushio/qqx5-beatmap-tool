@@ -5,7 +5,6 @@ go 1.20
 require (
 	github.com/gin-gonic/gin v1.9.1
 	github.com/spf13/viper v1.17.0
-	github.com/vsouza/go-gin-boilerplate v0.0.0-20230605143208-14b6a270707d
 )
 
 require (
