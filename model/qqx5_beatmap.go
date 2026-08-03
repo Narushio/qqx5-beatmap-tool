@@ -54,17 +54,11 @@ func calculateBarAndPosMS(bpm float64) (float64, float64) {
 func calculateBarAndPos(ms, barMS, posMS float64) (int, int) {
 	bar := math.Floor(ms / barMS)
 	pos := math.Round(math.Mod(ms, barMS) / posMS)
-	if math.Mod(pos, 2) != 0 {
-		if math.Mod(ms, barMS)/posMS > math.Round(math.Mod(ms, barMS)/posMS) {
-			pos += 1
-		} else {
-			pos -= 1
-		}
-	}
 
-	// Fix error bar and pos
-	if pos == 64 {
-		pos = 0
+	// Carry positions at or beyond the bar boundary into the next bar.
+	if pos >= 64 {
+		bar += math.Floor(pos / 64)
+		pos = math.Mod(pos, 64)
 	}
 
 	{
